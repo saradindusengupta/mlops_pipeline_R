@@ -1,0 +1,48 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidymodels)
+library(vetiver)
+library(pins)
+library(plumber)
+```
+
+Fitting a linear regression model on cars data-set
+
+```{r}
+car_mod <-
+  workflow(mpg ~ ., linear_reg()) %>%
+  fit(mtcars)
+v <- vetiver_model(car_mod, "cars_mpg")
+```
+Storing the model as `pins`
+```{r}
+model_board <- board_folder("/home/saradindu/dev/mlops_pipeline_R/models",versioned = TRUE)
+model_board %>% vetiver::vetiver_pin_write(v)
+```
+```{r}
+pr() %>% vetiver_api(v)
+```
+```{r}
+pr()%>%pr_run()
+```
+
+```{r}
+endpoint <- vetiver_endpoint("http://127.0.0.1:8080/predict")
+endpoint
+```
+```{r}
+new_car <- tibble(cyl = 4,  disp = 200, 
+                  hp = 100, drat = 3,
+                  wt = 3,   qsec = 17, 
+                  vs = 0,   am = 1,
+                  gear = 4, carb = 2)
+predict(endpoint, new_car)
+```
+```{r}
+
+```
+
